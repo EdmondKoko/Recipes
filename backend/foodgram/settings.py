@@ -94,14 +94,12 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 6,
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -119,28 +117,29 @@ USE_I18N = True
 
 USE_L10N = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # djoser settings
 
 DJOSER = {
-    'HIDE_USERS': False,
-    "LOGIN_FIELD": "email",
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.CreateUserSerializer',
+        'user': 'api.serializers.CustomUserSerializer',
+        'current_user': 'api.serializers.CustomUserSerializer',
+    },
+
     'PERMISSIONS': {
-        'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly']
+        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
-    "SERIALIZERS": {
-        "user_create": "api.serializers.users.UsersCreateSerializer",
-        "user": "api.serializers.users.UsersSerializer",
-        "current_user": "api.serializers.users.UsersSerializer",
-    },
+    'HIDE_USERS': False,
 }
+
+file_name = 'Список покупок.txt'

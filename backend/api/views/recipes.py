@@ -1,106 +1,104 @@
+from django.db import IntegrityError
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from reportlab.pdfbase import pdfmetrics, ttfonts
-from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from api.filters import IngredientFilter, RecipeFilter
-from api.pagination import LimitPagination
-from api.permissions import IsAuthorOrReadOnly
-from api.serializers.recipes import (FavoriteSerializer, IngredientSerializer,
-                                     RecipeSerializer, ShoppingCartSerializer,
-                                     TagSerializer)
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from api.filters import RecipeFilter
+from api.pagination import CustomPagination
+from api.permissions import IsAuthorOrAdminOnly
+from api.serializers import IngredientSerializer, TagSerializer, RecipeSerializer, RecipeCreateSerializer, \
+    RecipeFavoriteSerializer
+from recipes.models import (Favorite, Ingredient, RecipeIngredient, Recipe,
+                            ShoppingCart, Tag)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = IngredientFilter
     permission_classes = (AllowAny,)
-    pagination_class = None
+    filter_backends = (DjangoFilterBackend,)
+    search_fields = ('^name',)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
-    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    permission_classes = (IsAuthorOrAdminOnly,)
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-    permission_classes = (IsAuthorOrReadOnly,)
-    pagination_class = LimitPagination
 
-    def action_post_delete(self, pk, serializer_class):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        object = serializer_class.Meta.model.objects.filter(
-            user=user, recipe=recipe
-        )
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
-        if self.request.method == 'POST':
-            serializer = serializer_class(
-                data={'user': user.id, 'recipe': pk},
-                context={'request': self.request}
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    def get_serializer_class(self):
+        if self.request.method in SAFE_METHODS:
+            return RecipeSerializer
+        return RecipeCreateSerializer
 
-        if self.request.method == 'DELETE':
-            if object.exists():
-                object.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'error': 'Этого рецепта нет в списке'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    @action(methods=['POST', 'DELETE'], detail=True)
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
     def favorite(self, request, pk):
-        return self.action_post_delete(pk, FavoriteSerializer)
+        if request.method == 'POST':
+            return self.add_in(Favorite, request.user, pk)
+        else:
+            return self.delete_from(Favorite, request.user, pk)
 
-    @action(methods=['POST', 'DELETE'], detail=True)
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
     def shopping_cart(self, request, pk):
-        return self.action_post_delete(pk, ShoppingCartSerializer)
+        if request.method == 'POST':
+            return self.add_in(ShoppingCart, request.user, pk)
+        else:
+            return self.delete_from(ShoppingCart, request.user, pk)
 
-    @action(detail=False)
+    def add_in(self, model, user, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        try:
+            model.objects.create(user=user, recipe=recipe)
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = RecipeFavoriteSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete_from(self, model, user, pk):
+        obj = get_object_or_404(model, user=user, recipe__id=pk)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def download_shopping_cart(self, request):
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = (
-            "attachment; filename='shopping_cart.pdf'"
-        )
-        p = canvas.Canvas(response)
-        arial = ttfonts.TTFont('Arial', 'data/arial.ttf')
-        pdfmetrics.registerFont(arial)
-        p.setFont('Arial', 14)
-
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user).values_list(
-            'ingredient__name', 'amount', 'ingredient__measurement_unit')
+            recipe__shopping_recipe__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
 
-        ingr_list = {}
-        for name, amount, unit in ingredients:
-            if name not in ingr_list:
-                ingr_list[name] = {'amount': amount, 'unit': unit}
-            else:
-                ingr_list[name]['amount'] += amount
-        height = 700
+        shopping_cart_list = 'Список покупок:\n'
+        for ingredient in ingredients:
+            shopping_cart_list += f' {ingredient["ingredient__name"]} - {ingredient["amount"]}' \
+                                  f'({ingredient["ingredient__measurement_unit"]})\n'
 
-        p.drawString(100, 750, 'Список покупок')
-        for i, (name, data) in enumerate(ingr_list.items(), start=1):
-            p.drawString(
-                80, height,
-                f"{i}. {name} – {data['amount']} {data['unit']}")
-            height -= 25
-        p.showPage()
-        p.save()
+        response = HttpResponse(shopping_cart_list, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename=Список_покупок.txt'
         return response

@@ -2,59 +2,49 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import (IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.pagination import LimitPagination
-from api.serializers.users import FollowSerializer, UsersSerializer
-from users.models import Follow, User
+from api.pagination import CustomPagination
+from api.serializers import SubscriptionSerializer, CustomUserSerializer
+from users.models import Subscription, User
 
 
-class UsersViewSet(UserViewSet):
+class CreateUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = LimitPagination
-    http_method_names = ['get', 'post', 'delete', 'head']
+    serializer_class = CustomUserSerializer
+    pagination_class = CustomPagination
 
-    def get_permissions(self):
-        if self.action == 'me':
-            self.permission_classes = (IsAuthenticated,)
-        return super().get_permissions()
-
-    @action(methods=['POST', 'DELETE'],
-            detail=True, )
-    def subscribe(self, request, id):
-        user = request.user
-        author = get_object_or_404(User, id=id)
-        subscription = Follow.objects.filter(
-            user=user, author=author)
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
+    def subscribe(self, request, **kwargs):
+        author = get_object_or_404(User, id=kwargs['id'])
 
         if request.method == 'POST':
-            if subscription.exists():
-                return Response({'error': 'Вы уже подписаны'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            if user == author:
-                return Response({'error': 'Невозможно подписаться на себя'},
-                                status=status.HTTP_400_BAD_REQUEST)
-            serializer = FollowSerializer(author, context={'request': request})
-            Follow.objects.create(user=user, author=author)
+            serializer = SubscriptionSerializer(author,
+                                                data=request.data,
+                                                context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            Subscription.objects.create(user=request.user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            if subscription.exists():
-                subscription.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response({'error': 'Вы не подписаны на этого пользователя'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            get_object_or_404(Subscription,
+                              user=request.user,
+                              author=author).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, permission_classes=[IsAuthenticated])
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
     def subscriptions(self, request):
-        user = request.user
-        follows = User.objects.filter(following__user=user)
-        page = self.paginate_queryset(follows)
-        serializer = FollowSerializer(
-            page, many=True,
-            context={'request': request})
+        queryset = User.objects.filter(following__user=request.user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscriptionSerializer(pages,
+                                            many=True,
+                                            context={'request': request})
         return self.get_paginated_response(serializer.data)
