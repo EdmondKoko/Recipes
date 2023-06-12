@@ -11,8 +11,9 @@ from rest_framework.response import Response
 from api.filters import RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrAdminOnly
-from api.serializers import IngredientSerializer, TagSerializer, RecipeSerializer, RecipeCreateSerializer, \
-    RecipeFavoriteSerializer
+from api.serializers import (IngredientSerializer, TagSerializer,
+                             RecipeSerializer, RecipeCreateSerializer,
+                             RecipeFavoriteSerializer)
 from recipes.models import (Favorite, Ingredient, RecipeIngredient, Recipe,
                             ShoppingCart, Tag)
 
@@ -54,8 +55,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk):
         if request.method == 'POST':
             return self.add_in(Favorite, request.user, pk)
-        else:
-            return self.delete_from(Favorite, request.user, pk)
+        return self.delete_from(Favorite, request.user, pk)
 
     @action(
         detail=True,
@@ -65,15 +65,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk):
         if request.method == 'POST':
             return self.add_in(ShoppingCart, request.user, pk)
-        else:
-            return self.delete_from(ShoppingCart, request.user, pk)
+        return self.delete_from(ShoppingCart, request.user, pk)
 
     def add_in(self, model, user, pk):
         recipe = get_object_or_404(Recipe, id=pk)
         try:
             model.objects.create(user=user, recipe=recipe)
         except IntegrityError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({'errors': 'Рецепт уже добавлен'},
+                            status=status.HTTP_400_BAD_REQUEST)
         serializer = RecipeFavoriteSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -92,11 +92,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ).annotate(total=Sum('amount'))
 
         shopping_cart_list = 'Список покупок:\n'
         for ingredient in ingredients:
-            shopping_cart_list += f' {ingredient["ingredient__name"]} - {ingredient["amount"]}' \
+            shopping_cart_list += f' {ingredient["ingredient__name"]} - {ingredient["total"]}' \
                                   f'({ingredient["ingredient__measurement_unit"]})\n'
 
         response = HttpResponse(shopping_cart_list, content_type='text/plain')

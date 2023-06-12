@@ -1,6 +1,3 @@
-import base64
-
-from django.core.files.base import ContentFile
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
@@ -10,17 +7,9 @@ from rest_framework.fields import IntegerField
 from rest_framework.fields import SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
 
+from api.fields import Base64ImageField
 from recipes.models import Ingredient, RecipeIngredient, Recipe, Tag
 from users.models import User, Subscription
-
-
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-        return super().to_internal_value(data)
 
 
 class CreateUserSerializer(UserCreateSerializer):
@@ -101,10 +90,24 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RecipeIngredientListSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='ingredient.id')
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'name',
+                  'measurement_unit', 'amount')
+
+
 class RecipeSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    ingredients = SerializerMethodField()
+    ingredients = RecipeIngredientListSerializer(many=True,
+                                                 read_only=True,
+                                                 source='recipes')
     image = Base64ImageField(required=False, allow_null=True)
     is_favorited = SerializerMethodField(read_only=True)
     is_in_shopping_cart = SerializerMethodField(read_only=True)
@@ -117,18 +120,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                   'name', 'image',
                   'text', 'cooking_time',
                   )
-
-    def get_ingredients(self, value):
-        recipe = value
-        ingredient = []
-        for ingredient in recipe.ingredients.all():
-            ingredient.append({
-                'id': ingredient.id,
-                'name': ingredient.name,
-                'measurement_unit': ingredient.measurement_unit,
-                'amount': ingredient.recipeingredient_set.get(recipe=recipe).amount
-            })
-        return ingredient
 
     def get_is_favorited(self, value):
         user = self.context.get('request').user
@@ -166,25 +157,23 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         )
 
     def validate_ingredients(self, value):
-        ingredients = value
-        if not ingredients:
+        if not value:
             raise ValidationError({'Поле не должно быть пустым'})
 
         ingredients_list = [get_object_or_404(Ingredient, id=item['id'])
-                            for item in ingredients]
+                            for item in value]
         if len(set(ingredients_list)) != len(ingredients_list):
             raise ValidationError({'Ингредиенты не должны повторяться'})
 
         if any(int(item['amount']) <= 0
-               for item in ingredients):
+               for item in value):
             raise ValidationError({'Количество должно быть больше нуля'})
         return value
 
     def validate_tags(self, value):
-        tags = value
-        if not tags:
+        if not value:
             raise ValidationError({'Должен быть выбран хотя бы один тег'})
-        if len(tags) != len(set(tags)):
+        if len(value) != len(set(value)):
             raise ValidationError({'Теги не могут повторяться'})
         return value
 
@@ -194,7 +183,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             ingredient_value.append(
                 RecipeIngredient(
-                    ingredient=Ingredient.objects.get(id=ingredient['id']),
+                    ingredient_id=ingredient['id'],
                     recipe=recipe,
                     amount=ingredient['amount']
                 )
