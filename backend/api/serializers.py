@@ -127,9 +127,9 @@ class RecipeSerializer(serializers.ModelSerializer):
             recipe=value).exists()
 
     def get_is_in_shopping_cart(self, value):
-        return self.context.get('request').user.is_authenticated \
-               and self.context.get('request').user.shopping_user.filter(
-            recipe=value).exists()
+        return (self.context.get('request').user.is_authenticated
+                and self.context.get('request').user.shopping_user.filter(
+                    recipe=value).exists())
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):

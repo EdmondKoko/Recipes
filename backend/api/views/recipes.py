@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import DatabaseError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -71,7 +71,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
         try:
             model.objects.create(user=user, recipe=recipe)
-        except IntegrityError:
+        except DatabaseError:
             return Response({'errors': 'Рецепт уже добавлен'},
                             status=status.HTTP_400_BAD_REQUEST)
         serializer = RecipeFavoriteSerializer(recipe)
@@ -96,8 +96,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_cart_list = 'Список покупок:\n'
         for ingredient in ingredients:
-            shopping_cart_list += f' {ingredient["ingredient__name"]} - {ingredient["total"]}' \
-                                  f'({ingredient["ingredient__measurement_unit"]})\n'
+            shopping_cart_list += (f' {ingredient["ingredient__name"]} - {ingredient["total"]}'
+                                   f'({ingredient["ingredient__measurement_unit"]})\n')
 
         response = HttpResponse(shopping_cart_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename=Список_покупок.txt'
