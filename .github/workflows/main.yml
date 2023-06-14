@@ -40,7 +40,7 @@ jobs:
           script: |
             sudo docker pull edmondkoko/foodgram:latest
             sudo docker-compose stop
-            sudo docker-compose rm web
+            sudo docker-compose rm -f backend
             rm .env -f
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
