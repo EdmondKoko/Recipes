@@ -1,4 +1,3 @@
-from django.db import DatabaseError
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -69,13 +68,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def add_in(self, model, user, pk):
         recipe = get_object_or_404(Recipe, id=pk)
-        try:
-            model.objects.create(user=user, recipe=recipe)
-        except DatabaseError:
+        if model.objects.filter(user=user, recipe=recipe).exists():
             return Response({'errors': 'Рецепт уже добавлен'},
                             status=status.HTTP_400_BAD_REQUEST)
-        serializer = RecipeFavoriteSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            model.objects.create(user=user, recipe=recipe)
+            serializer = RecipeFavoriteSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_from(self, model, user, pk):
         obj = get_object_or_404(model, user=user, recipe__id=pk)
