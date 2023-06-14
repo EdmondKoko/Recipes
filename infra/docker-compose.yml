@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
 
-  web:
+  backend:
     image: edmondkoko/foodgram:latest
     volumes:
       - static_value:/app/static/
@@ -34,7 +34,7 @@ services:
       - media_value:/var/html/media/
 
     depends_on:
-      - web
+      - backend
 volumes:
   db_value:
   static_value:
