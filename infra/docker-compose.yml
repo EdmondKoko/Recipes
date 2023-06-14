@@ -12,7 +12,7 @@ services:
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
-      - redoc:/app/api/docs/
+      - redoc:/app/docs/
     depends_on:
       - db
     env_file:

@@ -71,10 +71,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if model.objects.filter(user=user, recipe=recipe).exists():
             return Response({'errors': 'Рецепт уже добавлен'},
                             status=status.HTTP_400_BAD_REQUEST)
-        else:
-            model.objects.create(user=user, recipe=recipe)
-            serializer = RecipeFavoriteSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        model.objects.create(user=user, recipe=recipe)
+        serializer = RecipeFavoriteSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_from(self, model, user, pk):
         obj = get_object_or_404(model, user=user, recipe__id=pk)
