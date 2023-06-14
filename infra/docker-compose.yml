@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
 
-  backend:
+  web:
     image: edmondkoko/foodgram:latest
     volumes:
       - static_value:/app/static/
