@@ -12,7 +12,6 @@ services:
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
-      - redoc:/app/docs/
     depends_on:
       - db
     env_file:
@@ -33,12 +32,10 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/var/html/static/
       - media_value:/var/html/media/
-      - redoc:/usr/share/nginx/html/api/docs/
 
     depends_on:
       - backend
 volumes:
+  db_value:
   static_value:
   media_value:
-  postgres_data:
-  redoc:
