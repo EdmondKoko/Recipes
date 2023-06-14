@@ -38,7 +38,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            sudo docker pull edmondkoko/foodgram:v1.0
             sudo docker-compose stop
             sudo docker-compose rm -f backend
             rm .env -f
