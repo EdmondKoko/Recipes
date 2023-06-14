@@ -22,7 +22,7 @@ jobs:
           with:
             context: backend/
             push: true
-            tags: edmondkoko/foodgram:latest
+            tags: edmondkoko/foodgram:v1.0
 
 
   deploy:
