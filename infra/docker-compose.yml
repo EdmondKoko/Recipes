@@ -6,7 +6,7 @@ services:
     env_file:
       - ./.env
   backend:
-    image: edmondkoko/foodgram:v1.0
+    image: edmondkoko/foodgram:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -17,7 +17,7 @@ services:
       - ./.env
 
   frontend:
-    image: edmondkoko/foodgram:v1.0
+    image: edmondkoko/foodgram:latest
     volumes:
       - ../frontend/:/app/result_build/
 
