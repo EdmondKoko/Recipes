@@ -20,7 +20,9 @@ services:
       - ./.env
 
   frontend:
-    image: edmondkoko/foodgram:latest
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
 
