@@ -22,7 +22,7 @@ jobs:
           with:
             context: backend/
             push: true
-            tags: edmondkoko/foodgram:latest
+            tags: edmondkoko/foodgram_backend:latest
 
 
   deploy:
@@ -37,7 +37,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           script: |
-            sudo docker pull edmondkoko/foodgram:latest
             sudo docker-compose stop
             sudo docker-compose rm -f backend
             rm .env -f
