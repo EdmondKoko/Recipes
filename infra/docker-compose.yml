@@ -23,8 +23,6 @@ services:
     image: edmondkoko/foodgram_frontend:v1.0
     volumes:
       - ../frontend/:/app/result_build/
-    depends_on:
-      - backend
 
   nginx:
     image: nginx:1.21.3-alpine
