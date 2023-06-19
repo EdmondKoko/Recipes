@@ -2,7 +2,7 @@
 
 ### Этот сервис предназначен для публикации рецептов, подписок на других пользователей,добавления понравившихся рецептов в список “Избранное” и “Список покупок”, а также для скачивания сводного списка продуктов.
 
-![example workflow](https://github.com/EdmondKoko/foodgram-project-react/blob/master/.github/workflows/main.yml)
+![workflow status](https://github.com/EdmondKoko/foodgram-project-react/actions/workflows/foodgram-workflow.yml/badge.svg)
 
 ![Python](https://img.shields.io/badge/Python-3.10-blue?style=for-the-badge&logo=python&logoColor=yellow)
 ![Django](https://img.shields.io/badge/Django-3.2.18-red?style=for-the-badge&logo=django&logoColor=blue)
