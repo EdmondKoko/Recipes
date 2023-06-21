@@ -38,9 +38,8 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Subscription.objects.filter(user=user, author=obj.id).exists()
+        return not user.is_anonymous and Subscription.objects.filter(
+            user=user, author=obj).exists()
 
 
 class SubscriptionSerializer(UserSerializer):
