@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from rest_framework import status, serializers
+from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField
 from rest_framework.fields import SerializerMethodField
@@ -51,19 +51,6 @@ class SubscriptionSerializer(UserSerializer):
             'recipes_count', 'recipes'
         )
         read_only_fields = ('email', 'username')
-
-    def validate_subscribe(self, value):
-        author = self.instance
-        user = self.context.get('request').user
-        if Subscription.objects.filter(author=author, user=user).exists():
-            raise ValidationError('Вы уже подписаны',
-                                  code=status.HTTP_400_BAD_REQUEST
-                                  )
-        if user == author:
-            raise ValidationError('Невозможно подписаться на себя',
-                                  code=status.HTTP_400_BAD_REQUEST
-                                  )
-        return value
 
     def get_recipes_count(self, value):
         return value.recipes.count()
