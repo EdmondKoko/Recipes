@@ -52,6 +52,13 @@ class SubscriptionSerializer(UserSerializer):
         )
         read_only_fields = ('email', 'username')
 
+    def get_is_subscribed(self, value):
+        return (
+                self.context.get('request').user.is_authenticated
+                and Subscription.objects.filter(user=self.context['request'].user,
+                                                author=value).exists()
+        )
+
     def validate_subscribe(self, value):
         author = self.instance
         user = self.context.get('request').user
