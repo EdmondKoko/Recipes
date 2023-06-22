@@ -38,18 +38,19 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Subscription.objects.filter(user=user, author=obj.id).exists()
+        return not user.is_anonymous and Subscription.objects.filter(
+            user=user, author=obj).exists()
 
 
 class SubscriptionSerializer(UserSerializer):
     recipes_count = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + (
-            'recipes_count', 'recipes'
+            'recipes_count', 'recipes',
+            'is_subscribed'
         )
         read_only_fields = ('email', 'username')
 
@@ -65,6 +66,11 @@ class SubscriptionSerializer(UserSerializer):
                                   code=status.HTTP_400_BAD_REQUEST
                                   )
         return value
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        return not user.is_anonymous and Subscription.objects.filter(
+            user=user, author=obj).exists()
 
     def get_recipes_count(self, value):
         return value.recipes.count()
