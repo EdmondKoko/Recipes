@@ -43,19 +43,14 @@ class CustomUserSerializer(UserSerializer):
 
 
 class SubscriptionSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + (
-            'recipes_count', 'recipes', 'is_subscribed'
+            'recipes_count', 'recipes'
         )
         read_only_fields = ('email', 'username')
-
-    def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        return bool(obj.subscriber.filter(user=user))
 
     def validate_subscribe(self, value):
         author = self.instance
