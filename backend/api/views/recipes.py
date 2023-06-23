@@ -13,6 +13,7 @@ from api.permissions import IsAuthorOrAdminOnly
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
                              RecipeFavoriteSerializer)
+from foodgram.settings import filename
 from recipes.models import (Favorite, Ingredient, RecipeIngredient, Recipe,
                             ShoppingCart, Tag)
 
@@ -99,5 +100,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 f'({ingredient["ingredient__measurement_unit"]})\n')
 
         response = HttpResponse(shopping_cart_list, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename=Список_покупок.txt'
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         return response

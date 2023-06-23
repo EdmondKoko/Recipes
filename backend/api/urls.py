@@ -6,10 +6,18 @@ from api.views.users import CreateUserViewSet
 
 router = DefaultRouter()
 
-router.register(r'users', CreateUserViewSet, basename='users')
-router.register(r'ingredients', IngredientViewSet, basename='ingredients')
-router.register(r'recipes', RecipeViewSet, basename='recipes')
-router.register(r'tags', TagViewSet, basename='tags')
+router.register(r'users',
+                CreateUserViewSet, basename='users'
+                )
+router.register(r'ingredients',
+                IngredientViewSet, basename='ingredients'
+                )
+router.register(r'recipes',
+                RecipeViewSet, basename='recipes'
+                )
+router.register(r'tags',
+                TagViewSet, basename='tags'
+                )
 
 urlpatterns = [
     path('', include(router.urls)),

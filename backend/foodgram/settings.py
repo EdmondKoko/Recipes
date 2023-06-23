@@ -141,3 +141,5 @@ DJOSER = {
     },
     'HIDE_USERS': False,
 }
+
+filename = 'Cписок покупок'
