@@ -12,7 +12,7 @@ from api.pagination import CustomPagination
 from api.permissions import IsAuthorOrAdminOnly
 from api.serializers import (IngredientSerializer, TagSerializer,
                              RecipeSerializer, RecipeCreateSerializer,
-                             RecipeFavoriteSerializer, CustomUserSerializer)
+                             RecipeFavoriteSerializer)
 from recipes.models import (Favorite, Ingredient, RecipeIngredient, Recipe,
                             ShoppingCart, Tag)
 
@@ -94,8 +94,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         shopping_cart_list = 'Список покупок:\n'
         for ingredient in ingredients:
-            shopping_cart_list += (f' {ingredient["ingredient__name"]} - {ingredient["total"]}'
-                                   f'({ingredient["ingredient__measurement_unit"]})\n')
+            shopping_cart_list += (
+                f' {ingredient["ingredient__name"]} - {ingredient["total"]}'
+                f'({ingredient["ingredient__measurement_unit"]})\n')
 
         response = HttpResponse(shopping_cart_list, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename=Список_покупок.txt'

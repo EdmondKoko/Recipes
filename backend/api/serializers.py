@@ -22,7 +22,9 @@ class CreateUserSerializer(UserCreateSerializer):
 
     def validate_username(self, value):
         if value == 'me':
-            raise ValidationError('Пользователь с таким именем не может быть создан')
+            raise ValidationError(
+                'Пользователь с таким именем не может быть создан'
+            )
         return value
 
 
@@ -74,7 +76,8 @@ class SubscriptionSerializer(UserSerializer):
         recipes = value.recipes.all()
         if limit:
             recipes = recipes[:int(limit)]
-        serializer = RecipeFavoriteSerializer(recipes, many=True, read_only=True)
+        serializer = RecipeFavoriteSerializer(recipes,
+                                              many=True, read_only=True)
         return serializer.data
 
 
