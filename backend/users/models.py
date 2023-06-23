@@ -29,7 +29,7 @@ class Subscription(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name='Подписчик',
-        related_name='subscriber',
+        related_name='follower',
     )
     author = models.ForeignKey(
         User,
