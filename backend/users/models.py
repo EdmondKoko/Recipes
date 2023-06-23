@@ -35,7 +35,7 @@ class Subscription(models.Model):
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор поста',
-        related_name='subscribing',
+        related_name='following',
     )
 
     class Meta:
@@ -43,4 +43,4 @@ class Subscription(models.Model):
         verbose_name_plural = 'Подписки'
         constraints = [models.UniqueConstraint(
             fields=['user', 'author'],
-            name='unique_subscription')]
+            name='unique_following')]
