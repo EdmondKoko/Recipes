@@ -38,13 +38,13 @@
 - Клонировать репозиторий:
 ```git@github.com:EdmondKoko/foodgram-project-react.git```
 - В директории infra создать файл .env и заполнить своими данными по аналогии с example.env:
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=postgres
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-DB_HOST=db
-DB_PORT=5432
-SECRET_KEY='секретный ключ Django'
+  - DB_ENGINE=django.db.backends.postgresql
+  - DB_NAME=postgres
+  - POSTGRES_USER=postgres
+  - POSTGRES_PASSWORD=postgres
+  - DB_HOST=db
+  - DB_PORT=5432
+  - SECRET_KEY='секретный ключ Django'
 - Создать и запустить контейнеры Docker, последовательно выполнить команды по созданию миграций, сбору статики, созданию суперпользователя, как указано выше.
 
 #### Автор 
