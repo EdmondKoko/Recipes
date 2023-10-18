@@ -11,22 +11,41 @@
 
 ## Как развернуть проект на удаленном сервере:
  - Клонировать репозиторий:
-```git@github.com:EdmondKoko/foodgram-project-react.git```
+
+```bash
+git@github.com:EdmondKoko/foodgram-project-react.git
+```
  - Установить на сервере Docker и Docker Compose:
-```https://docs.docker.com/compose/install/```
+```bash
+https://docs.docker.com/compose/install/
+```
  - Скопировать на сервер файлы docker-compose.yml, nginx.conf из папки infra (команды выполнять находясь в папке infra):
-```scp docker-compose.yml nginx.conf username@IP:/home/username/```
+```bash
+scp docker-compose.yml nginx.conf username@IP:/home/username/
+```
  - Создать и запустить контейнеры Docker:
-```sudo docker compose up```
- - Выполнить миграции:s
-```sudo docker compose exec backend python manage.py makemigrations```
-```sudo docker compose exec backend python manage.py migrate```
+```bash
+sudo docker compose up
+```
+ - Выполнить миграции:
+```bash
+sudo docker compose exec backend python manage.py makemigrations
+```
+```bash
+sudo docker compose exec backend python manage.py migrate
+```
  - Собрать статику:
-```sudo docker compose exec backend python manage.py collectstatic --noinput```
+```bash
+sudo docker compose exec backend python manage.py collectstatic --noinput
+```
  - Создать суперпользователя:
-```sudo docker compose exec backend python manage.py createsuperuser```
+```bash
+sudo docker compose exec backend python manage.py createsuperuser
+```
  - Наполнить базу данных:
-```sudo docker compose exec backend python manage.py loaddata ingredients.json```
+```bash
+sudo docker compose exec backend python manage.py loaddata ingredients.json
+```
 
 ## После каждого обновления репозитория (push в ветку master) будет происходить:
 1. Проверка кода на соответствие стандарту PEP8 (с помощью пакета flake8)
