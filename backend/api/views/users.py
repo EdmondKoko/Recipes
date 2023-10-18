@@ -11,6 +11,7 @@ from users.models import Subscription, User
 
 
 class CreateUserViewSet(UserViewSet):
+    """ViewSet для создания User."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
