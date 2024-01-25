@@ -1,4 +1,4 @@
-# Foodgram - Сервис рецептов
+# Recipes - Сервис рецептов
 
 ### Этот сервис предназначен для публикации рецептов, подписок на других пользователей,добавления понравившихся рецептов в список “Избранное” и “Список покупок”, а также для скачивания сводного списка продуктов.
 
@@ -13,7 +13,7 @@
  - Клонировать репозиторий:
 
 ```bash
-git@github.com:EdmondKoko/foodgram-project-react.git
+git@github.com:EdmondKoko/Recipes.git
 ```
  - Установить на сервере Docker и Docker Compose:
 ```bash
@@ -55,7 +55,7 @@ sudo docker compose exec backend python manage.py loaddata ingredients.json
 
 ## Запуск проекта на локальной машине:
 - Клонировать репозиторий:
-```git@github.com:EdmondKoko/foodgram-project-react.git```
+```git@github.com:EdmondKoko/Recipes.git```
 - В директории infra создать файл .env и заполнить своими данными по аналогии с example.env:
   - DB_ENGINE=django.db.backends.postgresql
   - DB_NAME=postgres
